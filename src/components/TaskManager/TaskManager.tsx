@@ -1,43 +1,37 @@
 import { useEffect, useState } from "react";
-import { createTask, getTasks } from "../../services/task-service";
-import type { Task } from "../../types/task";
+import { useTaskStore } from "../../stores/taskStore";
 import { TaskItem } from "../TaskItem/TaskItem";
 
 export const TaskManager = () => {
-	const [tasks, setTasks] = useState<Task[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
+	const tasks = useTaskStore((state) => state.tasks);
+	const isLoading = useTaskStore((state) => state.isLoading);
+	const error = useTaskStore((state) => state.error);
+
+	const getStats = useTaskStore((state) => state.getStats);
+	const fetchTasks = useTaskStore((state) => state.fetchTasks);
+	const addTask = useTaskStore((state) => state.addTask);
+	const toggleTask = useTaskStore((state) => state.toggleTask);
+	const deleteTask = useTaskStore((state) => state.deleteTask);
+
 	const [newTask, setNewTask] = useState("");
 
 	useEffect(() => {
-		const populateTasks = async () => {
-			try {
-				const getTasksResponse = await getTasks();
+		fetchTasks();
+	}, [fetchTasks]);
 
-				setTasks(getTasksResponse);
-			} finally {
-				setIsLoading(false);
-			}
-		};
-
-		populateTasks();
-	}, []);
+	const stats = getStats();
 
 	const handleAddTask = async () => {
 		if (!newTask) {
 			return;
 		}
 
-		const newTaskResponse = await createTask({ title: newTask });
-
-		if (newTaskResponse.title === newTask) {
-			setTasks((oldValue) => [...oldValue, newTaskResponse]);
-			setNewTask("");
-		}
+		await addTask(newTask);
+		setNewTask("");
 	};
 
-	if (isLoading) {
-		return <div>Loading...</div>;
-	}
+	if (isLoading) return <div>Loading...</div>;
+	if (error) return <div>Error: {error}</div>;
 
 	if (!tasks.length) {
 		return <div>no tasks created yet, add your first task!</div>;
@@ -45,6 +39,13 @@ export const TaskManager = () => {
 
 	return (
 		<div className="flex flex-col">
+			<div className="mb-4 p-2 bg-gray-100 rounded">
+				<span>Total: {stats.total}</span>
+				<span>Completed: {stats.completed}</span>
+				<span>Active: {stats.active}</span>
+				<span>Progress: {stats.percentComplete}%</span>
+			</div>
+
 			<div className="flex flex-row justify-between align-middle">
 				<input
 					className="flex"
@@ -59,7 +60,11 @@ export const TaskManager = () => {
 			</div>
 			<div>
 				{tasks.map((task) => (
-					<TaskItem key={task.id} task={task} />
+					<TaskItem
+						key={task.id}
+						task={task}
+						taskActions={{ onDelete: deleteTask, onToggle: toggleTask }}
+					/>
 				))}
 			</div>
 		</div>

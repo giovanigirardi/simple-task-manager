@@ -43,6 +43,6 @@ describe("TaskManager", () => {
 		const newTask = await screen.findByText(/My new task/i);
 
 		expect(newTask).toBeInTheDocument();
-		expect(input).toHaveValue("");
+		expect(screen.getByPlaceholderText(/add task/i)).toHaveValue("");
 	});
 });

@@ -56,6 +56,8 @@ export const useTaskStore = create<TaskState>()(
 			getStats: () => {
 				const { tasks } = get();
 
+				console.log("tasks", tasks);
+
 				const totalTasksAmount = tasks.length;
 				const completedTasksAmount = tasks.filter((t) => t.isCompleted).length;
 				const activeTasksAmount = totalTasksAmount - completedTasksAmount;

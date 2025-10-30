@@ -14,6 +14,8 @@ export const getTasks = async () => {
 	try {
 		const getTasksResponse = await api.get<Task[]>("tasks");
 
+		console.log("getTasksResponse", getTasksResponse);
+
 		return getTasksResponse.data;
 	} catch (e) {
 		if (e.response?.status === 500) {
